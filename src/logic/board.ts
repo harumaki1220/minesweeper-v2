@@ -1,5 +1,16 @@
 import type { Cell } from "./type.ts";
 
+const DIRECTIONS = [
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [-1, 0],
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1],
+];
+
 export const createBoard = (
   width: number,
   height: number,
@@ -34,6 +45,42 @@ export const createBoard = (
     const y = Math.floor(bombPosition / width);
 
     board[y][x].isMine = true;
+  }
+
+  return calculateAdjacentMines(board);
+};
+
+export const calculateAdjacentMines = (board: Cell[][]): Cell[][] => {
+  const height = board.length;
+  const width = board[0]?.length || 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const cell = board[y][x];
+
+      if (cell.isMine === true) {
+        continue;
+      }
+
+      let count = 0;
+
+      for (const [dx, dy] of DIRECTIONS) {
+        const ny = y + dy; // 次に調べるy座標
+        const nx = x + dx; // 次に調べるx座標
+
+        if (
+          ny >= 0 &&
+          ny < height &&
+          nx >= 0 &&
+          nx < width &&
+          board[ny][nx].isMine === true
+        ) {
+          count++;
+        }
+      }
+
+      cell.adjacentMines = count;
+    }
   }
 
   return board;
