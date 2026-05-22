@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createBoard, calculateAdjacentMines } from "./board";
+import { createBoard, calculateAdjacentMines, openCell } from "./board";
 
 describe("createBoard", () => {
   it("指定された幅と高さの盤面が生成されること", () => {
@@ -75,5 +75,72 @@ describe("calculateAdjacentMines", () => {
     // 3行目は [1, 2, 爆弾(そのまま)]
     expect(result[2][0].adjacentMines).toBe(1);
     expect(result[2][1].adjacentMines).toBe(2);
+  });
+});
+
+describe("openCell", () => {
+  it("数字のセル（周囲に爆弾があるセル）を開くと、そのセルだけが開かれること", () => {
+    const mockBoard = [
+      [
+        { isMine: false, state: "hidden", adjacentMines: 1 },
+        { isMine: true, state: "hidden", adjacentMines: 0 },
+      ],
+      [
+        { isMine: false, state: "hidden", adjacentMines: 1 },
+        { isMine: false, state: "hidden", adjacentMines: 1 },
+      ],
+    ] as const;
+
+    const board = JSON.parse(JSON.stringify(mockBoard));
+
+    // 左上(x:0, y:0)を開く
+    const result = openCell(board, 0, 0);
+
+    // 左上だけが開いていること
+    expect(result[0][0].state).toBe("opened");
+    // 右上（爆弾）は開いていないこと
+    expect(result[0][1].state).toBe("hidden");
+  });
+
+  it("0のセル（周囲に爆弾がないセル）を開くと、連鎖して周囲も開かれること", () => {
+    // 正しい盤面（爆弾は左下の1つだけ）
+    // [0, 0, 0]
+    // [1, 1, 0]
+    // [爆, 1, 0]
+    const mockBoard = [
+      [
+        { isMine: false, state: "hidden", adjacentMines: 0 },
+        { isMine: false, state: "hidden", adjacentMines: 0 },
+        { isMine: false, state: "hidden", adjacentMines: 0 },
+      ],
+      [
+        { isMine: false, state: "hidden", adjacentMines: 1 },
+        { isMine: false, state: "hidden", adjacentMines: 1 },
+        { isMine: false, state: "hidden", adjacentMines: 0 },
+      ],
+      [
+        { isMine: true, state: "hidden", adjacentMines: 0 },
+        { isMine: false, state: "hidden", adjacentMines: 1 },
+        { isMine: false, state: "hidden", adjacentMines: 0 },
+      ],
+    ] as const;
+
+    const board = JSON.parse(JSON.stringify(mockBoard));
+
+    // 左上(x:0, y:0)の「0」のセルを開く
+    const result = openCell(board, 0, 0);
+
+    // 0の連鎖により、爆弾（2, 0）以外のすべてのマスが開かれること
+    expect(result[0][0].state).toBe("opened");
+    expect(result[0][1].state).toBe("opened");
+    expect(result[0][2].state).toBe("opened");
+    expect(result[1][0].state).toBe("opened");
+    expect(result[1][1].state).toBe("opened");
+    expect(result[1][2].state).toBe("opened");
+    expect(result[2][1].state).toBe("opened");
+    expect(result[2][2].state).toBe("opened");
+
+    // 爆弾(2, 0)だけは開かれていないこと
+    expect(result[2][0].state).toBe("hidden");
   });
 });

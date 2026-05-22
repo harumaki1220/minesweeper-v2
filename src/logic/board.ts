@@ -85,3 +85,41 @@ export const calculateAdjacentMines = (board: Cell[][]): Cell[][] => {
 
   return board;
 };
+
+export const openCell = (
+  board: Cell[][],
+  startX: number,
+  startY: number,
+): Cell[][] => {
+  const height = board.length;
+  const width = board[0]?.length || 0;
+  const newBoard = structuredClone(board);
+  const stack: [number, number][] = [[startX, startY]];
+
+  while (stack.length > 0) {
+    const [x, y] = stack.pop()!;
+
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+      continue;
+    }
+
+    const cell = newBoard[y][x];
+
+    if (cell.state === "opened" || cell.state === "flagged") {
+      continue;
+    }
+
+    cell.state = "opened";
+    if (cell.adjacentMines === 0 && !cell.isMine) {
+      for (const [dx, dy] of DIRECTIONS) {
+        const ny = y + dy; // 次に調べるy座標
+        const nx = x + dx; // 次に調べるx座標
+        if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+          stack.push([nx, ny]);
+        }
+      }
+    }
+  }
+
+  return newBoard;
+};
