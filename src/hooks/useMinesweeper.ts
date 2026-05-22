@@ -12,9 +12,23 @@ export const useMinesweeper = (
   const [board, setBoard] = useState(() => createBoard(width, height, bombs));
   const [status, setStatus] = useState<GameStatus>("playing");
 
-  // マスをクリックしたときの処理（handleCellClick）の枠組みを作る。
   const handleCellClick = (x: number, y: number) => {
-    // 処理は後で書く
+    if (status === "lost" || status === "won") return;
+
+    const cell = board[y][x];
+
+    if (cell.state === "opened" || cell.state === "flagged") return;
+
+    if (cell.isMine) {
+      setStatus("lost");
+      const newBoard = structuredClone(board);
+      newBoard[y][x].state = "opened";
+      setBoard(newBoard);
+      return;
+    }
+
+    const newBoard = openCell(board, x, y);
+    setBoard(newBoard);
   };
 
   return {
