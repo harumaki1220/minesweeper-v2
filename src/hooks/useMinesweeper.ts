@@ -13,7 +13,7 @@ export const useMinesweeper = (
   const [status, setStatus] = useState<GameStatus>("playing");
 
   const handleCellClick = (x: number, y: number) => {
-    if (status === "lost" || status === "won") return;
+    if (status !== "playing") return;
 
     const cell = board[y][x];
 
@@ -31,9 +31,28 @@ export const useMinesweeper = (
     setBoard(newBoard);
   };
 
+  const handleRightClick = (x: number, y: number) => {
+    if (status !== "playing") return;
+
+    const cell = board[y][x];
+
+    if (cell.state === "opened") return;
+
+    const newBoard = structuredClone(board);
+
+    if (cell.state === "hidden") {
+      newBoard[y][x].state = "flagged";
+    } else if (cell.state === "flagged") {
+      newBoard[y][x].state = "hidden";
+    }
+
+    setBoard(newBoard);
+  };
+
   return {
     board,
     status,
     handleCellClick,
+    handleRightClick,
   };
 };
