@@ -39,6 +39,15 @@ export const useMinesweeper = (
     }
 
     const newBoard = openCell(currentBoard, x, y);
+
+    const isClear = newBoard.every((row) =>
+      row.every((cell) => cell.state === "opened" || cell.isMine),
+    );
+
+    if (isClear) {
+      setStatus("won");
+    }
+
     setBoard(newBoard);
   };
 
