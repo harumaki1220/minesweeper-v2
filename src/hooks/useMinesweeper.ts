@@ -69,10 +69,16 @@ export const useMinesweeper = (
     setBoard(newBoard);
   };
 
+  const resetGame = () => {
+    setBoard(createBoard(width, height, bombs));
+    setStatus("playing");
+  };
+
   return {
     board,
     status,
     handleCellClick,
     handleRightClick,
+    resetGame,
   };
 };
