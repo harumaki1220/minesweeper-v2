@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { Cell } from "../logic/types";
 import { createBoard, openCell } from "../logic/board";
 
 export type GameStatus = "playing" | "won" | "lost";
@@ -14,20 +13,32 @@ export const useMinesweeper = (
 
   const handleCellClick = (x: number, y: number) => {
     if (status !== "playing") return;
+    if (board[y][x].state === "opened" || board[y][x].state === "flagged")
+      return;
 
-    const cell = board[y][x];
+    let currentBoard = board;
 
-    if (cell.state === "opened" || cell.state === "flagged") return;
+    const isFirstClick = board.every((row) =>
+      row.every((cell) => cell.state !== "opened"),
+    );
+
+    if (isFirstClick) {
+      while (currentBoard[y][x].isMine) {
+        currentBoard = createBoard(width, height, bombs);
+      }
+    }
+
+    const cell = currentBoard[y][x];
 
     if (cell.isMine) {
       setStatus("lost");
-      const newBoard = structuredClone(board);
+      const newBoard = structuredClone(currentBoard);
       newBoard[y][x].state = "opened";
       setBoard(newBoard);
       return;
     }
 
-    const newBoard = openCell(board, x, y);
+    const newBoard = openCell(currentBoard, x, y);
     setBoard(newBoard);
   };
 
